@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import BasicLayout from '@/layouts/BasicLayout.vue'
+import zhCN from 'ant-design-vue/es/locale/zh_CN'
+import dayjs from 'dayjs'
+import 'dayjs/locale/zh-cn'
+dayjs.locale('zh-cn')
 
 </script>
 
 <template>
-  <BasicLayout />
+  <a-config-provider :locale="zhCN">
+    <BasicLayout />
+  </a-config-provider>
 </template>
 
-<style>
-</style>
+<style></style>
