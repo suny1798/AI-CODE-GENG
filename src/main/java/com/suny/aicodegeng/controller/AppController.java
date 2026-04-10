@@ -72,7 +72,7 @@ public class AppController {
         return contentFlux
                 .map(chunk -> {
                     // 将内容包装成JSON对象
-                    Map<String, String> wrapper = Map.of("sun", chunk);
+                    Map<String, String> wrapper = Map.of("d", chunk);
                     String jsonData = JSONUtil.toJsonStr(wrapper);
                     return ServerSentEvent.<String>builder()
                             .data(jsonData)
