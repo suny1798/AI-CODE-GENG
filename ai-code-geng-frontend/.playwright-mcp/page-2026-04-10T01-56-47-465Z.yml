@@ -1,0 +1,113 @@
+- generic [ref=e3]:
+  - generic:
+    - generic [ref=e6]:
+      - link "新闻" [ref=e7] [cursor=pointer]:
+        - /url: http://news.baidu.com
+      - link "hao123" [ref=e8] [cursor=pointer]:
+        - /url: https://www.hao123.com?src=from_pc
+      - link "地图" [ref=e9] [cursor=pointer]:
+        - /url: http://map.baidu.com
+      - link "贴吧" [ref=e10] [cursor=pointer]:
+        - /url: http://tieba.baidu.com/
+      - link "视频" [ref=e11] [cursor=pointer]:
+        - /url: https://haokan.baidu.com/?sfrom=baidu-top
+      - link "图片" [ref=e12] [cursor=pointer]:
+        - /url: http://image.baidu.com/
+      - link "网盘" [ref=e13] [cursor=pointer]:
+        - /url: https://pan.baidu.com?from=1026962h
+      - link "文库" [ref=e14] [cursor=pointer]:
+        - /url: https://wenku.baidu.com/?fr=bdpcindex
+      - link "文心" [ref=e15] [cursor=pointer]:
+        - /url: https://chat.baidu.com/search?isShowHello=1&pd=csaitab&setype=csaitab&extParamsJson=%7B%22enter_type%22%3A%22home_tab%22%7D
+      - link "更多" [ref=e17] [cursor=pointer]:
+        - /url: http://www.baidu.com/more/
+    - generic [ref=e18]:
+      - generic [ref=e19] [cursor=pointer]: 设置
+      - link "登录" [ref=e20] [cursor=pointer]:
+        - /url: https://passport.baidu.com/v2/?login&tpl=mn&u=http%3A%2F%2Fwww.baidu.com%2F&sms=5
+  - generic [ref=e23]:
+    - generic [ref=e24]:
+      - img [ref=e25]
+      - generic:
+        - link "点击一下，了解更多":
+          - /url: //www.baidu.com/s?wd=%E7%99%BE%E5%BA%A6%E7%83%AD%E6%90%9C&sa=ire_dl_gh_logo_texing&rsv_dl=igh_logo_pcs
+    - generic [ref=e30]:
+      - generic [ref=e33]:
+        - textbox "燕树林同志逝世" [active] [ref=e35]
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - img [ref=e46] [cursor=pointer]
+            - generic [ref=e49]:
+              - img [ref=e53] [cursor=pointer]
+              - img [ref=e58] [cursor=pointer]
+          - button "百度一下" [ref=e62] [cursor=pointer]
+      - link "复杂问题就找文心助手，深入思考回答更优 " [ref=e66] [cursor=pointer]:
+        - /url: https://chat.baidu.com/search?extParams=%7B%22enter_type%22%3A%22home_operate%22%7D&isShowHello=1
+        - img [ref=e67]
+        - generic [ref=e68]:
+          - generic [ref=e69]: 复杂问题就找文心助手，深入思考回答更优
+          - generic [ref=e70]: 
+    - generic [ref=e73]:
+      - generic [ref=e74]:
+        - link "百度热搜":
+          - /url: https://top.baidu.com/board?platform=pc&sa=pcindex_entry
+          - generic "百度热搜" [ref=e75] [cursor=pointer]: 
+        - generic [ref=e76] [cursor=pointer]:
+          - generic [ref=e77]: 
+          - text: 换一换
+      - list:
+        - listitem [ref=e78]:
+          - link " 立党为公 心底无私天地宽" [ref=e79] [cursor=pointer]:
+            - /url: https://www.baidu.com/s?wd=%E7%AB%8B%E5%85%9A%E4%B8%BA%E5%85%AC+%E5%BF%83%E5%BA%95%E6%97%A0%E7%A7%81%E5%A4%A9%E5%9C%B0%E5%AE%BD&sa=fyb_n_homepage&rsv_dl=fyb_n_homepage&from=super&cl=3&tn=baidutop10&fr=top1000&rsv_idx=2&hisfilter=1
+            - generic [ref=e80]: 
+            - text: 立党为公 心底无私天地宽
+        - listitem [ref=e82]:
+          - link "5 人民日报点赞张雪、冯骥、王兴兴" [ref=e83] [cursor=pointer]:
+            - /url: https://www.baidu.com/s?wd=%E4%BA%BA%E6%B0%91%E6%97%A5%E6%8A%A5%E7%82%B9%E8%B5%9E%E5%BC%A0%E9%9B%AA%E3%80%81%E5%86%AF%E9%AA%A5%E3%80%81%E7%8E%8B%E5%85%B4%E5%85%B4&sa=fyb_n_homepage&rsv_dl=fyb_n_homepage&from=super&cl=3&tn=baidutop10&fr=top1000&rsv_idx=2&hisfilter=1
+            - generic [ref=e84]: "5"
+            - text: 人民日报点赞张雪、冯骥、王兴兴
+          - generic [ref=e85]: 新
+        - listitem [ref=e86]:
+          - link "1 普京宣布停火32小时 乌方跟进" [ref=e87] [cursor=pointer]:
+            - /url: https://www.baidu.com/s?wd=%E6%99%AE%E4%BA%AC%E5%AE%A3%E5%B8%83%E5%81%9C%E7%81%AB32%E5%B0%8F%E6%97%B6+%E4%B9%8C%E6%96%B9%E8%B7%9F%E8%BF%9B&sa=fyb_n_homepage&rsv_dl=fyb_n_homepage&from=super&cl=3&tn=baidutop10&fr=top1000&rsv_idx=2&hisfilter=1
+            - generic [ref=e88]: "1"
+            - text: 普京宣布停火32小时 乌方跟进
+          - generic [ref=e89]: 热
+        - listitem [ref=e90]:
+          - link "6 利用“外挂”当黄牛 打击处理不留情" [ref=e91] [cursor=pointer]:
+            - /url: https://www.baidu.com/s?wd=%E5%88%A9%E7%94%A8%E2%80%9C%E5%A4%96%E6%8C%82%E2%80%9D%E5%BD%93%E9%BB%84%E7%89%9B+%E6%89%93%E5%87%BB%E5%A4%84%E7%90%86%E4%B8%8D%E7%95%99%E6%83%85&sa=fyb_n_homepage&rsv_dl=fyb_n_homepage&from=super&cl=3&tn=baidutop10&fr=top1000&rsv_idx=2&hisfilter=1
+            - generic [ref=e92]: "6"
+            - text: 利用“外挂”当黄牛 打击处理不留情
+        - listitem [ref=e94]:
+          - link "2 多位书记省长会见一位外企高管" [ref=e95] [cursor=pointer]:
+            - /url: https://www.baidu.com/s?wd=%E5%A4%9A%E4%BD%8D%E4%B9%A6%E8%AE%B0%E7%9C%81%E9%95%BF%E4%BC%9A%E8%A7%81%E4%B8%80%E4%BD%8D%E5%A4%96%E4%BC%81%E9%AB%98%E7%AE%A1&sa=fyb_n_homepage&rsv_dl=fyb_n_homepage&from=super&cl=3&tn=baidutop10&fr=top1000&rsv_idx=2&hisfilter=1
+            - generic [ref=e96]: "2"
+            - text: 多位书记省长会见一位外企高管
+          - generic [ref=e97]: 热
+        - listitem [ref=e98]:
+          - link "7 伊朗最高领袖提出三点主张" [ref=e99] [cursor=pointer]:
+            - /url: https://www.baidu.com/s?wd=%E4%BC%8A%E6%9C%97%E6%9C%80%E9%AB%98%E9%A2%86%E8%A2%96%E6%8F%90%E5%87%BA%E4%B8%89%E7%82%B9%E4%B8%BB%E5%BC%A0&sa=fyb_n_homepage&rsv_dl=fyb_n_homepage&from=super&cl=3&tn=baidutop10&fr=top1000&rsv_idx=2&hisfilter=1
+            - generic [ref=e100]: "7"
+            - text: 伊朗最高领袖提出三点主张
+        - listitem [ref=e102]:
+          - link "3 大雾、强对流天气等四预警齐发" [ref=e103] [cursor=pointer]:
+            - /url: https://www.baidu.com/s?wd=%E5%A4%A7%E9%9B%BE%E3%80%81%E5%BC%BA%E5%AF%B9%E6%B5%81%E5%A4%A9%E6%B0%94%E7%AD%89%E5%9B%9B%E9%A2%84%E8%AD%A6%E9%BD%90%E5%8F%91&sa=fyb_n_homepage&rsv_dl=fyb_n_homepage&from=super&cl=3&tn=baidutop10&fr=top1000&rsv_idx=2&hisfilter=1
+            - generic [ref=e104]: "3"
+            - text: 大雾、强对流天气等四预警齐发
+        - listitem [ref=e106]:
+          - link "8 降至300元的降脂针被纳入医保" [ref=e107] [cursor=pointer]:
+            - /url: https://www.baidu.com/s?wd=%E9%99%8D%E8%87%B3300%E5%85%83%E7%9A%84%E9%99%8D%E8%84%82%E9%92%88%E8%A2%AB%E7%BA%B3%E5%85%A5%E5%8C%BB%E4%BF%9D&sa=fyb_n_homepage&rsv_dl=fyb_n_homepage&from=super&cl=3&tn=baidutop10&fr=top1000&rsv_idx=2&hisfilter=1
+            - generic [ref=e108]: "8"
+            - text: 降至300元的降脂针被纳入医保
+          - generic [ref=e109]: 热
+        - listitem [ref=e110]:
+          - link "4 微信回应夫妻用AI写公众号年赚200万" [ref=e111] [cursor=pointer]:
+            - /url: https://www.baidu.com/s?wd=%E5%BE%AE%E4%BF%A1%E5%9B%9E%E5%BA%94%E5%A4%AB%E5%A6%BB%E7%94%A8AI%E5%86%99%E5%85%AC%E4%BC%97%E5%8F%B7%E5%B9%B4%E8%B5%9A200%E4%B8%87&sa=fyb_n_homepage&rsv_dl=fyb_n_homepage&from=super&cl=3&tn=baidutop10&fr=top1000&rsv_idx=2&hisfilter=1
+            - generic [ref=e112]: "4"
+            - text: 微信回应夫妻用AI写公众号年赚200万
+          - generic [ref=e113]: 热
+        - listitem [ref=e114]:
+          - link "9 离异父母均拒接孩子 司机当场怒斥" [ref=e115] [cursor=pointer]:
+            - /url: https://www.baidu.com/s?wd=%E7%A6%BB%E5%BC%82%E7%88%B6%E6%AF%8D%E5%9D%87%E6%8B%92%E6%8E%A5%E5%AD%A9%E5%AD%90+%E5%8F%B8%E6%9C%BA%E5%BD%93%E5%9C%BA%E6%80%92%E6%96%A5&sa=fyb_n_homepage&rsv_dl=fyb_n_homepage&from=super&cl=3&tn=baidutop10&fr=top1000&rsv_idx=2&hisfilter=1
+            - generic [ref=e116]: "9"
+            - text: 离异父母均拒接孩子 司机当场怒斥
