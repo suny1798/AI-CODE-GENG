@@ -1,56 +1,59 @@
 <template>
-  <a-layout-header class="header">
-    <a-row :wrap="false">
-      <!-- 左侧：Logo和标题 -->
-      <a-col flex="200px">
-        <RouterLink to="/">
-          <div class="header-left">
-            <img class="logo" src="@/assets/logo.png" alt="Logo" />
-            <h1 class="site-title">AI应用生成</h1>
+  <div id="globalHeader">
+    <div class="header-bg"></div>
+    <a-layout-header class="header">
+      <a-row :wrap="false">
+        <!-- 左侧：Logo和标题 -->
+        <a-col flex="200px">
+          <RouterLink to="/">
+            <div class="header-left">
+              <img class="logo" src="@/assets/logo.png" alt="Logo" />
+              <h1 class="site-title">AI应用生成</h1>
+            </div>
+          </RouterLink>
+        </a-col>
+        <!-- 中间：导航菜单 -->
+        <a-col flex="auto">
+          <a-menu
+            v-model:selectedKeys="selectedKeys"
+            mode="horizontal"
+            :items="menuItems"
+            @click="handleMenuClick"
+          />
+        </a-col>
+        <!-- 右侧：用户操作区域 -->
+        <a-col>
+          <div v-if="loginUserStore.loginUser.id">
+            <a-dropdown>
+              <a-space>
+                <a-avatar :src="loginUserStore.loginUser.userAvatar" />
+                {{ loginUserStore.loginUser.userName ?? '无名' }}
+              </a-space>
+              <template #overlay>
+                <a-menu>
+                  <a-menu-item @click="doUserInfo"> <UserOutlined /> 个人中心</a-menu-item>
+                  <a-menu-item @click="doLogout">
+                    <LogoutOutlined />
+                    退出登录
+                  </a-menu-item>
+                </a-menu>
+              </template>
+            </a-dropdown>
           </div>
-        </RouterLink>
-      </a-col>
-      <!-- 中间：导航菜单 -->
-      <a-col flex="auto">
-        <a-menu
-          v-model:selectedKeys="selectedKeys"
-          mode="horizontal"
-          :items="menuItems"
-          @click="handleMenuClick"
-        />
-      </a-col>
-      <!-- 右侧：用户操作区域 -->
-      <a-col>
-        <div v-if="loginUserStore.loginUser.id">
-          <a-dropdown>
-            <a-space>
-              <a-avatar :src="loginUserStore.loginUser.userAvatar" />
-              {{ loginUserStore.loginUser.userName ?? '无名' }}
-            </a-space>
-            <template #overlay>
-              <a-menu>
-                <a-menu-item @click="doUserInfo"> <UserOutlined /> 个人中心</a-menu-item>
-                <a-menu-item @click="doLogout">
-                  <LogoutOutlined />
-                  退出登录
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
-        </div>
-        <div v-else>
-          <a-button type="primary" href="/user/login">登录</a-button>
-        </div>
-      </a-col>
-    </a-row>
-  </a-layout-header>
+          <div v-else>
+            <a-button type="primary" href="/user/login">登录</a-button>
+          </div>
+        </a-col>
+      </a-row>
+    </a-layout-header>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { computed, h, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { type MenuProps, message } from 'ant-design-vue'
-import { LogoutOutlined, HomeOutlined, UserOutlined } from '@ant-design/icons-vue'
+import { LogoutOutlined, HomeOutlined, UserOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
 
 // JS 中引入 Store
 import { useLoginUserStore } from '@/stores/loginUser.ts'
@@ -83,9 +86,10 @@ const originItems = [
     title: '应用管理',
   },
   {
-    key: 'others',
-    label: h('a', { href: 'https://github.com/suny1798', target: '_blank' }, 'Suny'),
-    title: 'Suny',
+    key: '/about',
+    icon: () => h(InfoCircleOutlined),
+    label: '关于我们',
+    title: '关于我们',
   },
 ]
 
@@ -137,9 +141,33 @@ const doLogout = async () => {
 </script>
 
 <style scoped>
+#globalHeader {
+  position: relative;
+  z-index: 1000;
+}
+
+.header-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  z-index: 999;
+}
+
 .header {
-  background: #fff;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: transparent;
   padding: 0 24px;
+  height: 64px;
+  line-height: 64px;
 }
 
 .header-left {
@@ -149,17 +177,38 @@ const doLogout = async () => {
 }
 
 .logo {
-  height: 48px;
-  width: 48px;
+  height: 40px;
+  width: 40px;
 }
 
 .site-title {
   margin: 0;
   font-size: 18px;
-  color: #1890ff;
+  font-weight: 600;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .ant-menu-horizontal {
   border-bottom: none !important;
+  line-height: 62px;
+}
+
+:deep(.ant-menu-item) {
+  font-weight: 500;
+}
+
+:deep(.ant-menu-item-selected) {
+  color: #3b82f6 !important;
+}
+
+:deep(.ant-menu-item-selected::after) {
+  border-bottom-color: #3b82f6 !important;
+}
+
+:deep(.ant-menu-item:hover) {
+  color: #3b82f6 !important;
 }
 </style>
