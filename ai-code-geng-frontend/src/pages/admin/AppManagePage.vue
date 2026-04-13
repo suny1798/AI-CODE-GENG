@@ -14,7 +14,7 @@
         <!-- 搜索表单 -->
         <a-form layout="inline" :model="searchParams" @finish="doSearch" class="search-form">
           <a-form-item label="应用名称">
-            <a-input v-model:value="searchParams.appName" placeholder="输入应用名称" size="large" />
+            <a-input v-model:value="searchParams.appName" placeholder="输入应用名称" size="large"  />
           </a-form-item>
           <a-form-item label="创建者">
             <a-input v-model:value="searchParams.userId" placeholder="输入用户ID" size="large" />
@@ -25,8 +25,8 @@
               placeholder="选择生成类型"
               style="width: 160px"
               size="large"
+              allow-clear
             >
-              <a-select-option value="">全部</a-select-option>
               <a-select-option
                 v-for="option in CODE_GEN_TYPE_OPTIONS"
                 :key="option.value"
