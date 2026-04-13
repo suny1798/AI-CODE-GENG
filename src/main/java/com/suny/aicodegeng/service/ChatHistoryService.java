@@ -1,7 +1,13 @@
 package com.suny.aicodegeng.service;
 
+import com.mybatisflex.core.paginate.Page;
+import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
+import com.suny.aicodegeng.model.dto.chathistory.ChatHistoryQueryRequest;
 import com.suny.aicodegeng.model.entity.ChatHistory;
+import com.suny.aicodegeng.model.entity.User;
+
+import java.time.LocalDateTime;
 
 /**
  *  服务层。
@@ -10,4 +16,32 @@ import com.suny.aicodegeng.model.entity.ChatHistory;
  */
 public interface ChatHistoryService extends IService<ChatHistory> {
 
+    /**
+     * 添加聊天记录
+     * @param appId 应用ID
+     * @param message 消息内容
+     * @param messageType 消息类型
+     * @param userId 用户ID
+     * @return 是否添加成功
+     */
+    boolean addChatMessage(Long appId, String message, String messageType, Long userId);
+
+    /**
+     * 根据应用ID删除聊天记录
+     * @param appId 应用ID
+     * @return 是否删除成功
+     */
+    boolean deleteByAppId(Long appId);
+
+    Page<ChatHistory> listAppChatHistoryByPage(Long appId, int pageSize,
+                                               LocalDateTime lastCreateTime,
+                                               User loginUser);
+
+    /**
+     * 获取查询包装类
+     *
+     * @param chatHistoryQueryRequest 查询请求
+     * @return 查询包装类
+     */
+    QueryWrapper getQueryWrapper(ChatHistoryQueryRequest chatHistoryQueryRequest);
 }

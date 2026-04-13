@@ -16,16 +16,20 @@ import com.suny.aicodegeng.model.dto.app.AppQueryRequest;
 import com.suny.aicodegeng.model.entity.App;
 import com.suny.aicodegeng.mapper.AppMapper;
 import com.suny.aicodegeng.model.entity.User;
+import com.suny.aicodegeng.model.enums.ChatHistoryMessageTypeEnum;
 import com.suny.aicodegeng.model.enums.CodeGenTypeEnum;
 import com.suny.aicodegeng.model.vo.AppVO;
 import com.suny.aicodegeng.model.vo.UserVO;
 import com.suny.aicodegeng.service.AppService;
+import com.suny.aicodegeng.service.ChatHistoryService;
 import com.suny.aicodegeng.service.UserService;
 import jakarta.annotation.Resource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
 import java.io.File;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +43,7 @@ import java.util.stream.Collectors;
  * @author suny
  */
 @Service
+@Slf4j
 public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppService{
 
     @Resource
@@ -46,6 +51,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
 
     @Resource
     private AiCodeGeneratorFacade aiCodeGeneratorFacade;
+
+    @Resource
+    private ChatHistoryService chatHistoryService;
 
     /**
      * AI对话
@@ -70,8 +78,26 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         String type = app.getCodeGenType();
         CodeGenTypeEnum enumByValue = CodeGenTypeEnum.getEnumByValue(type);
         ThrowUtils.throwIf(enumByValue == null, ErrorCode.PARAMS_ERROR, "代码生成类型错误");
-        //5. 根据代码生成类型调用不同的代码生成器
-        return aiCodeGeneratorFacade.generateAndSaveCodeStream(message, enumByValue, appId);
+
+        //5. 调用AI前保存用户信息到数据库
+        chatHistoryService.addChatMessage(appId, message, ChatHistoryMessageTypeEnum.USER.getValue(), loginUser.getId());
+        //6. 根据代码生成类型调用不同的代码生成器
+        Flux<String> contentFlux = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, enumByValue, appId);
+        //7. 收集AI的回复，保存AI回复到数据库
+        StringBuilder aiResponseBuilder = new StringBuilder();
+        return contentFlux.map(chunk -> {
+            //时时收集代码片段
+            aiResponseBuilder.append(chunk);
+            return chunk;
+        }).doOnComplete( () -> {
+            //保存AI回复到数据库
+            String aiResponse = aiResponseBuilder.toString();
+            chatHistoryService.addChatMessage(appId, aiResponse, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
+        }).doOnError(error ->{
+            //保存错误信息到数据库
+            chatHistoryService.addChatMessage(appId, error.getMessage(), ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
+        });
+
     }
 
     /**
@@ -206,6 +232,26 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     }
 
 
-
-
+    /**
+     * 删除应用时，关联删除对话历史
+     * @param id 应用ID
+     * @return 删除结果
+     */
+    @Override
+    public boolean removeById(Serializable id) {
+        if (id == null) {
+            return false;
+        }
+        long appId = Long.parseLong(id.toString());
+        if (appId <= 0) {
+            return false;
+        }
+        // 删除对话历史
+        try {
+            chatHistoryService.deleteByAppId(appId);
+        } catch (Exception e) {
+            log.error("删除对话历史失败: ", e);
+        }
+        return super.removeById(id);
+    }
 }
