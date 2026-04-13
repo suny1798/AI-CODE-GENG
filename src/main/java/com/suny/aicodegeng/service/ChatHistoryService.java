@@ -6,6 +6,7 @@ import com.mybatisflex.core.service.IService;
 import com.suny.aicodegeng.model.dto.chathistory.ChatHistoryQueryRequest;
 import com.suny.aicodegeng.model.entity.ChatHistory;
 import com.suny.aicodegeng.model.entity.User;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 
 import java.time.LocalDateTime;
 
@@ -33,9 +34,26 @@ public interface ChatHistoryService extends IService<ChatHistory> {
      */
     boolean deleteByAppId(Long appId);
 
+    /**
+     * 查询历史对话
+     * @param appId 应用ID
+     * @param pageSize 页面大小
+     * @param lastCreateTime 最后创建时间
+     * @param loginUser 登录用户
+     * @return 历史对话列表
+     */
     Page<ChatHistory> listAppChatHistoryByPage(Long appId, int pageSize,
                                                LocalDateTime lastCreateTime,
                                                User loginUser);
+
+    /**
+     * 加载历史对话到内存
+     * @param appId  应用ID
+     * @param chatMemory 聊天记忆
+     * @param maxCount 最大加载条数
+     * @return 加载的条数
+     */
+    int loadChatHistoryToMemory(Long appId, MessageWindowChatMemory chatMemory, int maxCount);
 
     /**
      * 获取查询包装类
