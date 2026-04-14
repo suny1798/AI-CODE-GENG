@@ -9,6 +9,7 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.suny.aicodegeng.constant.AppConstant;
 import com.suny.aicodegeng.core.AiCodeGeneratorFacade;
+import com.suny.aicodegeng.core.handler.StreamHandlerExecutor;
 import com.suny.aicodegeng.exception.BusinessException;
 import com.suny.aicodegeng.exception.ErrorCode;
 import com.suny.aicodegeng.exception.ThrowUtils;
@@ -55,6 +56,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
     @Resource
     private ChatHistoryService chatHistoryService;
 
+    @Resource
+    private StreamHandlerExecutor streamHandlerExecutor;
+
     /**
      * AI对话
      * @param appId 应用ID
@@ -84,19 +88,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         //6. 根据代码生成类型调用不同的代码生成器
         Flux<String> contentFlux = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, enumByValue, appId);
         //7. 收集AI的回复，保存AI回复到数据库
-        StringBuilder aiResponseBuilder = new StringBuilder();
-        return contentFlux.map(chunk -> {
-            //时时收集代码片段
-            aiResponseBuilder.append(chunk);
-            return chunk;
-        }).doOnComplete( () -> {
-            //保存AI回复到数据库
-            String aiResponse = aiResponseBuilder.toString();
-            chatHistoryService.addChatMessage(appId, aiResponse, ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
-        }).doOnError(error ->{
-            //保存错误信息到数据库
-            chatHistoryService.addChatMessage(appId, error.getMessage(), ChatHistoryMessageTypeEnum.AI.getValue(), loginUser.getId());
-        });
+        return streamHandlerExecutor.doExecute(contentFlux, chatHistoryService, appId, loginUser, enumByValue);
 
     }
 
