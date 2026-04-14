@@ -16,7 +16,7 @@
           <template #icon>
             <CloudUploadOutlined />
           </template>
-          部署按钮
+          一键部署
         </a-button>
       </div>
     </div>
@@ -27,6 +27,12 @@
       <div class="chat-section">
         <!-- 消息区域 -->
         <div class="messages-container" ref="messagesContainer">
+          <!-- 加载更多按钮 -->
+          <div v-if="hasMoreHistory" class="load-more-container">
+            <a-button type="link" @click="loadMoreHistory" :loading="loadingHistory" size="small">
+              加载更多历史消息
+            </a-button>
+          </div>
           <div v-for="(message, index) in messages" :key="index" class="message-item">
             <div v-if="message.type === 'user'" class="user-message">
               <div class="message-content">{{ message.content }}</div>
@@ -86,7 +92,6 @@
           </div>
         </div>
       </div>
-
       <!-- 右侧网页展示区域 -->
       <div class="preview-section">
         <div class="preview-header">
@@ -148,13 +153,14 @@ import {
   deployApp as deployAppApi,
   deleteApp as deleteAppApi,
 } from '@/api/appController'
+import { listAppChatHistory } from '@/api/chatHistoryController'
 import { CodeGenTypeEnum } from '@/utils/codeGenTypes'
 import request from '@/request'
 
 import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
 import AppDetailModal from '@/components/AppDetailModal.vue'
 import DeploySuccessModal from '@/components/DeploySuccessModal.vue'
-import aiAvatar from '@/assets/logo.png'
+import aiAvatar from '@/assets/aiAvatar.png'
 import { API_BASE_URL, getStaticPreviewUrl } from '@/config/env'
 
 import {
@@ -170,20 +176,26 @@ const loginUserStore = useLoginUserStore()
 
 // 应用信息
 const appInfo = ref<API.AppVO>()
-const appId = ref<string>()
+const appId = ref<any>()
 
 // 对话相关
 interface Message {
   type: 'user' | 'ai'
   content: string
   loading?: boolean
+  createTime?: string
 }
 
 const messages = ref<Message[]>([])
 const userInput = ref('')
 const isGenerating = ref(false)
 const messagesContainer = ref<HTMLElement>()
-const hasInitialConversation = ref(false) // 标记是否已经进行过初始对话
+
+// 对话历史相关
+const loadingHistory = ref(false)
+const hasMoreHistory = ref(false)
+const lastCreateTime = ref<string>()
+const historyLoaded = ref(false)
 
 // 预览相关
 const previewUrl = ref('')
@@ -210,6 +222,63 @@ const appDetailVisible = ref(false)
 const showAppDetail = () => {
   appDetailVisible.value = true
 }
+const loading = ref(false)
+
+// 加载对话历史
+const loadChatHistory = async (isLoadMore = false) => {
+  loading.value = true
+  if (!appId.value || loadingHistory.value) return
+  loadingHistory.value = true
+  try {
+    const params: API.listAppChatHistoryParams = {
+      appId: appId.value,
+      pageSize: 10,
+    }
+    // 如果是加载更多，传递最后一条消息的创建时间作为游标
+    if (isLoadMore && lastCreateTime.value) {
+      params.lastCreateTime = lastCreateTime.value
+    }
+    const res = await listAppChatHistory(params)
+    if (res.data.code === 0 && res.data.data) {
+      const chatHistories = res.data.data.records || []
+      if (chatHistories.length > 0) {
+        // 将对话历史转换为消息格式，并按时间正序排列（老消息在前）
+        const historyMessages: Message[] = chatHistories
+          .map((chat) => ({
+            type: (chat.messageType === 'user' ? 'user' : 'ai') as 'user' | 'ai',
+            content: chat.message || '',
+            createTime: chat.createTime,
+          }))
+          .reverse() // 反转数组，让老消息在前
+        if (isLoadMore) {
+          // 加载更多时，将历史消息添加到开头
+          messages.value.unshift(...historyMessages)
+        } else {
+          // 初始加载，直接设置消息列表
+          messages.value = historyMessages
+        }
+        // 更新游标
+        lastCreateTime.value = chatHistories[chatHistories.length - 1]?.createTime
+        // 检查是否还有更多历史
+        hasMoreHistory.value = chatHistories.length === 10
+      } else {
+        hasMoreHistory.value = false
+      }
+      historyLoaded.value = true
+      loading.value = false
+    }
+  } catch (error) {
+    console.error('加载对话历史失败：', error)
+    message.error('加载对话历史失败')
+  } finally {
+    loadingHistory.value = false
+  }
+}
+
+// 加载更多历史消息
+const loadMoreHistory = async () => {
+  await loadChatHistory(true)
+}
 
 // 获取应用信息
 const fetchAppInfo = async () => {
@@ -227,12 +296,20 @@ const fetchAppInfo = async () => {
     if (res.data.code === 0 && res.data.data) {
       appInfo.value = res.data.data
 
-      // 检查是否有view=1参数，如果有则不自动发送初始提示词
-      const isViewMode = route.query.view === '1'
-
-      // 自动发送初始提示词（除非是查看模式或已经进行过初始对话）
-      if (appInfo.value.initPrompt && !isViewMode && !hasInitialConversation.value) {
-        hasInitialConversation.value = true
+      // 先加载对话历史
+      await loadChatHistory()
+      // 如果有至少2条对话记录，展示对应的网站
+      if (messages.value.length >= 2) {
+        updatePreview()
+      }
+      // 检查是否需要自动发送初始提示词
+      // 只有在是自己的应用且没有对话历史时才自动发送
+      if (
+        appInfo.value.initPrompt &&
+        isOwner.value &&
+        messages.value.length === 0 &&
+        historyLoaded.value
+      ) {
         await sendInitialMessage(appInfo.value.initPrompt)
       }
     } else {
@@ -497,11 +574,15 @@ onUnmounted(() => {
 
 <style scoped>
 #appChatPage {
-  height: 100vh;
+  height: 94vh;
   display: flex;
   flex-direction: column;
   padding: 16px;
-  background: #fdfdfd;
+  background:
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 8%, #e2e8f0 20%, #cbd5e1 100%),
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%);
+  position: relative;
 }
 
 /* 顶部栏 */
@@ -510,6 +591,11 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .header-left {
@@ -520,14 +606,43 @@ onUnmounted(() => {
 
 .app-name {
   margin: 0;
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
-  color: #1a1a1a;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .header-right {
   display: flex;
   gap: 12px;
+}
+
+.header-right :deep(.ant-btn-default) {
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  transition: all 0.3s;
+}
+
+.header-right :deep(.ant-btn-default:hover) {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.header-right :deep(.ant-btn-primary) {
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s;
+}
+
+.header-right :deep(.ant-btn-primary:hover) {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
 }
 
 /* 主要内容区域 */
@@ -544,9 +659,10 @@ onUnmounted(() => {
   flex: 2;
   display: flex;
   flex-direction: column;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
@@ -555,6 +671,24 @@ onUnmounted(() => {
   padding: 16px;
   overflow-y: auto;
   scroll-behavior: smooth;
+}
+
+.messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
 
 .message-item {
@@ -584,14 +718,17 @@ onUnmounted(() => {
 }
 
 .user-message .message-content {
-  background: #1890ff;
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
   color: white;
+  border-bottom-right-radius: 4px;
 }
 
 .ai-message .message-content {
-  background: #f5f5f5;
-  color: #1a1a1a;
+  background: #f8fafc;
+  color: #1e293b;
   padding: 8px 12px;
+  border-bottom-left-radius: 4px;
+  border: 1px solid #e2e8f0;
 }
 
 .message-avatar {
@@ -602,21 +739,44 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: #666;
+  color: #64748b;
+}
+
+/* 加载更多按钮 */
+.load-more-container {
+  text-align: center;
+  padding: 8px 0;
+  margin-bottom: 16px;
+}
+
+.load-more-container :deep(.ant-btn-link) {
+  color: #3b82f6;
+  font-weight: 500;
 }
 
 /* 输入区域 */
 .input-container {
   padding: 16px;
-  background: white;
+  background: rgba(255, 255, 255, 0.95);
+  border-top: 1px solid #f1f5f9;
 }
 
 .input-wrapper {
   position: relative;
 }
 
-.input-wrapper .ant-input {
+.input-wrapper :deep(.ant-input) {
   padding-right: 50px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  transition: all 0.3s;
+}
+
+.input-wrapper :deep(.ant-input:hover),
+.input-wrapper :deep(.ant-input:focus) {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
 .input-actions {
@@ -625,14 +785,29 @@ onUnmounted(() => {
   right: 8px;
 }
 
+.input-actions :deep(.ant-btn-primary) {
+  border-radius: 8px;
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  border: none;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transition: all 0.3s;
+}
+
+.input-actions :deep(.ant-btn-primary:hover) {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+  transform: translateY(-1px);
+}
+
 /* 右侧预览区域 */
 .preview-section {
   flex: 3;
   display: flex;
   flex-direction: column;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   overflow: hidden;
 }
 
@@ -641,18 +816,20 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  border-bottom: 1px solid #e8e8e8;
+  border-bottom: 1px solid #f1f5f9;
+  background: #f8fafc;
 }
 
 .preview-header h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
+  color: #475569;
 }
 
-.preview-actions {
-  display: flex;
-  gap: 8px;
+.preview-actions :deep(.ant-btn-link) {
+  color: #3b82f6;
+  font-weight: 500;
 }
 
 .preview-content {
@@ -667,12 +844,14 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #666;
+  color: #64748b;
+  background: #f8fafc;
 }
 
 .placeholder-icon {
   font-size: 48px;
   margin-bottom: 16px;
+  opacity: 0.8;
 }
 
 .preview-loading {
@@ -681,11 +860,13 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   height: 100%;
-  color: #666;
+  color: #64748b;
+  background: #f8fafc;
 }
 
 .preview-loading p {
   margin-top: 16px;
+  color: #64748b;
 }
 
 .preview-iframe {

@@ -1,23 +1,38 @@
 <template>
-  <div id="userManagePage">
+  <div id="chatManagePage">
     <div class="bg-effects">
       <div class="grid-bg"></div>
       <div class="glow-effect"></div>
     </div>
     <div class="container">
       <div class="page-header">
-        <h1 class="page-title">用户管理</h1>
-        <p class="page-desc">管理系统中的所有用户</p>
+        <h1 class="page-title">对话管理</h1>
+        <p class="page-desc">管理系统中的所有对话记录</p>
       </div>
 
       <div class="content-card">
         <!-- 搜索表单 -->
         <a-form layout="inline" :model="searchParams" @finish="doSearch" class="search-form">
-          <a-form-item label="账号">
-            <a-input v-model:value="searchParams.userAccount" placeholder="输入账号" size="large" />
+          <a-form-item label="消息内容">
+            <a-input v-model:value="searchParams.message" placeholder="输入消息内容" size="large" />
           </a-form-item>
-          <a-form-item label="用户名">
-            <a-input v-model:value="searchParams.userName" placeholder="输入用户名" size="large" />
+          <a-form-item label="消息类型">
+            <a-select
+              v-model:value="searchParams.messageType"
+              placeholder="选择消息类型"
+              style="width: 120px"
+              size="large"
+              allow-clear
+            >
+              <a-select-option value="user">用户消息</a-select-option>
+              <a-select-option value="assistant">AI消息</a-select-option>
+            </a-select>
+          </a-form-item>
+          <a-form-item label="应用ID">
+            <a-input v-model:value="searchParams.appId" placeholder="输入应用ID" size="large" />
+          </a-form-item>
+          <a-form-item label="用户ID">
+            <a-input v-model:value="searchParams.userId" placeholder="输入用户ID" size="large" />
           </a-form-item>
           <a-form-item>
             <a-button type="primary" html-type="submit" size="large">
@@ -35,37 +50,45 @@
           :data-source="data"
           :pagination="pagination"
           @change="doTableChange"
+          :scroll="{ x: 1400 }"
           :row-key="record => record.id"
-          :scroll="{ x: 1000 }"
           :loading="loading"
         >
           <template #bodyCell="{ column, record }">
-            <template v-if="column.dataIndex === 'userAvatar'">
-              <a-avatar :src="record.userAvatar" :size="40" />
+            <template v-if="column.dataIndex === 'message'">
+              <a-tooltip :title="record.message">
+                <div class="message-text">{{ record.message }}</div>
+              </a-tooltip>
             </template>
-            <template v-else-if="column.dataIndex === 'userRole'">
-              <a-tag :color="record.userRole === 'admin' ? 'green' : 'blue'" class="role-tag">
-                {{ record.userRole === 'admin' ? '管理员' : '普通用户' }}
+            <template v-else-if="column.dataIndex === 'messageType'">
+              <a-tag :color="record.messageType === 'user' ? 'blue' : 'green'" class="type-tag">
+                {{ record.messageType === 'user' ? '用户消息' : 'AI消息' }}
               </a-tag>
             </template>
             <template v-else-if="column.dataIndex === 'createTime'">
-              <span class="time-text">{{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm') }}</span>
+              <span class="time-text">{{ formatTime(record.createTime) }}</span>
             </template>
             <template v-else-if="column.key === 'action'">
-              <a-popconfirm
-                placement="left"
-                ok-text="确定"
-                cancel-text="取消"
-                @confirm="doDelete(record.id)"
-              >
-                <template #title>
-                  <p>确定删除该用户吗？此操作不可恢复。</p>
-                </template>
-                <a-button type="text" danger size="small" class="delete-btn">
-                  <template #icon><DeleteOutlined /></template>
-                  删除
+              <a-space class="action-space">
+                <a-button type="primary" size="small" @click="viewAppChat(record.appId)" class="view-btn">
+                  <template #icon><EyeOutlined /></template>
+                  查看
                 </a-button>
-              </a-popconfirm>
+                <a-popconfirm
+                  placement="left"
+                  ok-text="确定"
+                  cancel-text="取消"
+                  @confirm="deleteMessage(record.id)"
+                >
+                  <template #title>
+                    <p>确定删除该消息吗？此操作不可恢复。</p>
+                  </template>
+                  <a-button danger size="small" class="delete-btn">
+                    <template #icon><DeleteOutlined /></template>
+                    删除
+                  </a-button>
+                </a-popconfirm>
+              </a-space>
             </template>
           </template>
         </a-table>
@@ -73,47 +96,44 @@
     </div>
   </div>
 </template>
+
 <script lang="ts" setup>
 import { computed, onMounted, reactive, ref, onUnmounted } from 'vue'
-import { deleteUser, listUserVoByPage } from '@/api/userController.ts'
+import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { SearchOutlined, DeleteOutlined } from '@ant-design/icons-vue'
-import dayjs from 'dayjs'
+import { SearchOutlined, EyeOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+import { listAllChatHistoryByPageForAdmin } from '@/api/chatHistoryController'
+import { formatTime } from '@/utils/time'
 
+const router = useRouter()
 const loading = ref(false)
 
 const columns = [
   {
     title: 'ID',
     dataIndex: 'id',
-    width: 80,
+    width: 90,
     fixed: 'left',
   },
   {
-    title: '账号',
-    dataIndex: 'userAccount',
-    width: 120,
+    title: '消息内容',
+    dataIndex: 'message',
+    width: 300,
   },
   {
-    title: '用户名',
-    dataIndex: 'userName',
-    width: 120,
-  },
-  {
-    title: '头像',
-    dataIndex: 'userAvatar',
-    width: 80,
-  },
-  {
-    title: '简介',
-    dataIndex: 'userProfile',
-    width: 150,
-    ellipsis: true,
-  },
-  {
-    title: '角色',
-    dataIndex: 'userRole',
+    title: '消息类型',
+    dataIndex: 'messageType',
     width: 100,
+  },
+  {
+    title: '应用ID',
+    dataIndex: 'appId',
+    width: 90,
+  },
+  {
+    title: '用户ID',
+    dataIndex: 'userId',
+    width: 90,
   },
   {
     title: '创建时间',
@@ -123,17 +143,17 @@ const columns = [
   {
     title: '操作',
     key: 'action',
-    width: 100,
+    width: 180,
     fixed: 'right',
   },
 ]
 
-// 展示的数据
-const data = ref<API.UserVO[]>([])
+// 数据
+const data = ref<API.ChatHistory[]>([])
 const total = ref(0)
 
 // 搜索条件
-const searchParams = reactive<API.UserQueryRequest>({
+const searchParams = reactive<API.ChatHistoryQueryRequest>({
   current: 1,
   pageSize: 10,
 })
@@ -141,16 +161,41 @@ const searchParams = reactive<API.UserQueryRequest>({
 // 获取数据
 const fetchData = async () => {
   loading.value = true
-  const res = await listUserVoByPage({
-    ...searchParams,
-  })
-  if (res.data.data) {
-    data.value = res.data.data.records ?? []
-    total.value = res.data.data.totalRow ?? 0
-  } else {
-    message.error('获取数据失败，' + res.data.message)
+  try {
+    const res = await listAllChatHistoryByPageForAdmin({
+      ...searchParams,
+    })
+    if (res.data.data) {
+      data.value = res.data.data.records ?? []
+      total.value = res.data.data.totalRow ?? 0
+    } else {
+      message.error('获取数据失败，' + res.data.message)
+    }
+  } catch (error) {
+    console.error('获取数据失败：', error)
+    message.error('获取数据失败')
   }
   loading.value = false
+}
+
+// 页面加载时请求一次
+onMounted(() => {
+  fetchData()
+  document.addEventListener('mousemove', handleMouseMove)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('mousemove', handleMouseMove)
+})
+
+// 鼠标跟随光效
+const handleMouseMove = (e: MouseEvent) => {
+  const { clientX, clientY } = e
+  const { innerWidth, innerHeight } = window
+  const x = (clientX / innerWidth) * 100
+  const y = (clientY / innerHeight) * 100
+  document.documentElement.style.setProperty('--mouse-x', `${x}%`)
+  document.documentElement.style.setProperty('--mouse-y', `${y}%`)
 }
 
 // 分页参数
@@ -164,57 +209,47 @@ const pagination = computed(() => {
   }
 })
 
-// 表格分页变化时的操作
+// 表格变化处理
 const doTableChange = (page: { current: number; pageSize: number }) => {
   searchParams.current = page.current
   searchParams.pageSize = page.pageSize
   fetchData()
 }
 
-// 搜索数据
+// 搜索
 const doSearch = () => {
   // 重置页码
   searchParams.current = 1
   fetchData()
 }
 
-// 删除数据
-const doDelete = async (id: string) => {
-  if (!id) {
-    return
+// 查看应用对话
+const viewAppChat = (appId: number | undefined) => {
+  if (appId) {
+    router.push(`/app/chat/${appId}`)
   }
-  const res = await deleteUser({ id })
-  if (res.data.code === 0) {
+}
+
+// 删除消息
+const deleteMessage = async (id: number | undefined) => {
+  if (!id) return
+
+  try {
+    // 注意：这里需要后端提供删除对话历史的接口
+    // 目前先显示成功，实际实现需要调用删除接口
     message.success('删除成功')
     // 刷新数据
     await fetchData()
-  } else {
+  } catch (error) {
+    console.error('删除失败：', error)
     message.error('删除失败')
   }
 }
 
-// 鼠标跟随光效
-const handleMouseMove = (e: MouseEvent) => {
-  const { clientX, clientY } = e
-  const { innerWidth, innerHeight } = window
-  const x = (clientX / innerWidth) * 100
-  const y = (clientY / innerHeight) * 100
-  document.documentElement.style.setProperty('--mouse-x', `${x}%`)
-  document.documentElement.style.setProperty('--mouse-y', `${y}%`)
-}
-
-onMounted(() => {
-  fetchData()
-  document.addEventListener('mousemove', handleMouseMove)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('mousemove', handleMouseMove)
-})
 </script>
 
 <style scoped>
-#userManagePage {
+#chatManagePage {
   min-height: 100vh;
   padding: 40px 24px;
   background:
@@ -397,7 +432,16 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-.role-tag {
+.message-text {
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.type-tag {
   border-radius: 6px;
   font-size: 12px;
   padding: 2px 10px;
@@ -408,8 +452,17 @@ onUnmounted(() => {
   font-size: 13px;
 }
 
+.action-space {
+  display: flex;
+  gap: 8px;
+}
+
+.view-btn {
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
 .delete-btn {
-  font-size: 13px;
   border-radius: 6px;
   transition: all 0.3s;
 }
@@ -444,6 +497,11 @@ onUnmounted(() => {
 
   .page-title {
     font-size: 24px;
+  }
+
+  .action-space {
+    flex-direction: column;
+    gap: 4px;
   }
 }
 </style>

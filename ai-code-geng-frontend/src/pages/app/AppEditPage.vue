@@ -1,17 +1,23 @@
 <template>
   <div id="appEditPage">
-    <div class="page-header">
-      <h1>编辑应用信息</h1>
+    <div class="bg-effects">
+      <div class="grid-bg"></div>
+      <div class="glow-effect"></div>
     </div>
+    <div class="container">
+      <div class="page-header">
+        <h1 class="page-title">编辑应用信息</h1>
+        <p class="page-desc">修改应用的配置和基本信息</p>
+      </div>
 
-    <div class="edit-container">
-      <a-card title="基本信息" :loading="loading">
+      <div class="content-card">
         <a-form
           :model="formData"
           :rules="rules"
           layout="vertical"
           @finish="handleSubmit"
           ref="formRef"
+          class="edit-form"
         >
           <a-form-item label="应用名称" name="appName">
             <a-input
@@ -19,6 +25,7 @@
               placeholder="请输入应用名称"
               :maxlength="50"
               show-count
+              size="large"
             />
           </a-form-item>
 
@@ -28,7 +35,7 @@
             name="cover"
             extra="支持图片链接，建议尺寸：400x300"
           >
-            <a-input v-model:value="formData.cover" placeholder="请输入封面图片链接" />
+            <a-input v-model:value="formData.cover" placeholder="请输入封面图片链接" size="large" />
             <div v-if="formData.cover" class="cover-preview">
               <a-image
                 :src="formData.cover"
@@ -44,6 +51,7 @@
               v-model:value="formData.priority"
               :min="0"
               :max="99"
+              size="large"
               style="width: 200px"
             />
           </a-form-item>
@@ -65,29 +73,35 @@
               :value="formatCodeGenType(formData.codeGenType)"
               placeholder="生成类型"
               disabled
+              size="large"
             />
             <div class="form-tip">生成类型不可修改</div>
           </a-form-item>
 
           <a-form-item v-if="formData.deployKey" label="部署密钥" name="deployKey">
-            <a-input v-model:value="formData.deployKey" placeholder="部署密钥" disabled />
+            <a-input v-model:value="formData.deployKey" placeholder="部署密钥" disabled size="large" />
             <div class="form-tip">部署密钥不可修改</div>
           </a-form-item>
 
           <a-form-item>
-            <a-space>
-              <a-button type="primary" html-type="submit" :loading="submitting">
+            <a-space size="large">
+              <a-button type="primary" html-type="submit" :loading="submitting" size="large" class="submit-btn">
                 保存修改
               </a-button>
-              <a-button @click="resetForm">重置</a-button>
-              <a-button type="link" @click="goToChat">进入对话</a-button>
+              <a-button size="large" @click="resetForm" class="reset-btn">
+                重置
+              </a-button>
+              <a-button type="link" @click="goToChat" class="chat-btn">
+                进入对话
+              </a-button>
             </a-space>
           </a-form-item>
         </a-form>
-      </a-card>
+      </div>
 
       <!-- 应用信息展示 -->
-      <a-card title="应用信息" style="margin-top: 24px">
+      <div class="content-card info-card">
+        <h3 class="info-title">应用信息</h3>
         <a-descriptions :column="2" bordered>
           <a-descriptions-item label="应用ID">
             {{ appInfo?.id }}
@@ -111,13 +125,13 @@
             <span v-else>未部署</span>
           </a-descriptions-item>
         </a-descriptions>
-      </a-card>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { useLoginUserStore } from '@/stores/loginUser'
@@ -271,53 +285,284 @@ const openPreview = () => {
 // 页面加载时获取应用信息
 onMounted(() => {
   fetchAppInfo()
+  document.addEventListener('mousemove', handleMouseMove)
 })
+
+onUnmounted(() => {
+  document.removeEventListener('mousemove', handleMouseMove)
+})
+
+// 鼠标跟随光效
+const handleMouseMove = (e: MouseEvent) => {
+  const { clientX, clientY } = e
+  const { innerWidth, innerHeight } = window
+  const x = (clientX / innerWidth) * 100
+  const y = (clientY / innerHeight) * 100
+  document.documentElement.style.setProperty('--mouse-x', `${x}%`)
+  document.documentElement.style.setProperty('--mouse-y', `${y}%`)
+}
 </script>
 
 <style scoped>
 #appEditPage {
-  padding: 24px;
+  min-height: 100vh;
+  padding: 40px 24px;
+  background:
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 8%, #e2e8f0 20%, #cbd5e1 100%),
+    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 网格背景 */
+.bg-effects .grid-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+    linear-gradient(rgba(139, 92, 246, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139, 92, 246, 0.04) 1px, transparent 1px);
+  background-size:
+    100px 100px,
+    100px 100px,
+    20px 20px,
+    20px 20px;
+  pointer-events: none;
+  animation: gridFloat 20s ease-in-out infinite;
+}
+
+/* 动态光效 */
+.bg-effects .glow-effect {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background:
+    radial-gradient(
+      600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      rgba(59, 130, 246, 0.1) 0%,
+      rgba(139, 92, 246, 0.06) 40%,
+      transparent 70%
+    );
+  pointer-events: none;
+  animation: lightPulse 8s ease-in-out infinite alternate;
+}
+
+@keyframes gridFloat {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(5px, 5px); }
+}
+
+@keyframes lightPulse {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+.container {
   max-width: 1000px;
   margin: 0 auto;
+  position: relative;
+  z-index: 10;
 }
 
+/* 页面标题 */
 .page-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: 32px;
+  animation: fadeIn 0.5s ease-out;
 }
 
-.page-header h1 {
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.page-desc {
+  font-size: 14px;
+  color: #64748b;
   margin: 0;
-  font-size: 24px;
-  font-weight: 600;
 }
 
-.edit-container {
-  border-radius: 8px;
+/* 内容卡片 */
+.content-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.1),
+    0 0 0 1px rgba(255, 255, 255, 0.8) inset;
+  animation: cardAppear 0.5s ease-out;
+}
+
+@keyframes cardAppear {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.info-card {
+  margin-top: 24px;
+}
+
+.info-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #f1f5f9;
+}
+
+/* 表单样式 */
+.edit-form :deep(.ant-input),
+.edit-form :deep(.ant-input-affix-wrapper) {
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  transition: all 0.3s;
+}
+
+.edit-form :deep(.ant-input:hover),
+.edit-form :deep(.ant-input-affix-wrapper:hover) {
+  border-color: #3b82f6;
+  background: #fff;
+}
+
+.edit-form :deep(.ant-input:focus),
+.edit-form :deep(.ant-input-affix-wrapper-focused) {
+  border-color: #3b82f6;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+
+.edit-form :deep(.ant-input[disabled]) {
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.edit-form :deep(.ant-input-textarea textarea[disabled]) {
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+}
+
+.edit-form :deep(.ant-form-item-label > label) {
+  font-weight: 600;
+  color: #475569;
+  font-size: 14px;
 }
 
 .cover-preview {
   margin-top: 12px;
   padding: 12px;
-  border: 1px solid #e8e8e8;
-  border-radius: 6px;
-  background: #fafafa;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
 }
 
 .form-tip {
   font-size: 12px;
-  color: #999;
+  color: #64748b;
   margin-top: 4px;
 }
 
-:deep(.ant-card-head) {
-  background: #fafafa;
+.submit-btn {
+  height: 42px;
+  padding: 0 32px;
+  font-size: 15px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+  border: none;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+  transition: all 0.3s;
 }
 
+.submit-btn:hover {
+  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+  transform: translateY(-2px);
+}
+
+.reset-btn {
+  height: 42px;
+  padding: 0 24px;
+  font-size: 15px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  transition: all 0.3s;
+}
+
+.reset-btn:hover {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.chat-btn {
+  height: 42px;
+  font-size: 15px;
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+
+/* 描述列表样式 */
 :deep(.ant-descriptions-item-label) {
-  background: #fafafa;
+  background: #f8fafc;
   font-weight: 500;
+  color: #475569;
+  font-size: 13px;
+  padding: 12px 16px;
+}
+
+:deep(.ant-descriptions-item-content) {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #64748b;
+}
+
+:deep(.ant-descriptions-table) {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+:deep(.ant-descriptions-table .ant-descriptions-row) {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+:deep(.ant-descriptions-table .ant-descriptions-row:last-child) {
+  border-bottom: none;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .content-card {
+    padding: 20px 16px;
+  }
+
+  .page-title {
+    font-size: 24px;
+  }
 }
 </style>

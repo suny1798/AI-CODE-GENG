@@ -53,7 +53,12 @@
 import { computed, h, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { type MenuProps, message } from 'ant-design-vue'
-import { LogoutOutlined, HomeOutlined, UserOutlined, InfoCircleOutlined } from '@ant-design/icons-vue'
+import {
+  LogoutOutlined,
+  HomeOutlined,
+  UserOutlined,
+  InfoCircleOutlined,
+} from '@ant-design/icons-vue'
 
 // JS 中引入 Store
 import { useLoginUserStore } from '@/stores/loginUser.ts'
@@ -84,6 +89,11 @@ const originItems = [
     key: '/admin/appManage',
     label: '应用管理',
     title: '应用管理',
+  },
+  {
+    key: '/admin/chatManage',
+    label: '对话管理',
+    title: '对话管理',
   },
   {
     key: '/about',
