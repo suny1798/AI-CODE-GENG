@@ -19,6 +19,8 @@ public interface AppService extends IService<App> {
 
     String deployApp(Long appId, User loginUser);
 
+    void generateAppScreenshotAsync(Long appId, String appUrl);
+
     /**
      * 根据App实体对象获取对应的AppVO（View Object）对象
      * @param app App实体对象，包含应用的基本信息

@@ -96,7 +96,7 @@
                   @click="toggleFeatured(record)"
                   :class="{ 'featured-btn': record.priority === 99 }"
                 >
-                  {{ record.priority === 99 ? '取消精选' : '精选' }}
+                  {{ record.priority === 99 ? '取消精选' : '🌟精选' }}
                 </a-button>
                 <a-popconfirm title="确定要删除这个应用吗？" @confirm="deleteApp(record.id)">
                   <a-button danger size="small" class="delete-btn">

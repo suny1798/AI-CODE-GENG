@@ -12,7 +12,19 @@
           </template>
           应用详情
         </a-button>
-        <a-button type="primary" @click="deployApp" :loading="deploying">
+        <a-button
+          v-if="appInfo?.deployKey"
+          type="primary"
+          :href="`http://localhost/${appInfo.deployKey}`"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <template #icon>
+            <EyeOutlined />
+          </template>
+          一键访问
+        </a-button>
+        <a-button v-else type="primary" @click="deployApp" :loading="deploying">
           <template #icon>
             <CloudUploadOutlined />
           </template>
@@ -168,6 +180,7 @@ import {
   SendOutlined,
   ExportOutlined,
   InfoCircleOutlined,
+  EyeOutlined,
 } from '@ant-design/icons-vue'
 
 const route = useRoute()
