@@ -2,6 +2,7 @@ package com.suny.aicodegeng.service;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
+import com.suny.aicodegeng.model.dto.app.AppAddRequest;
 import com.suny.aicodegeng.model.dto.app.AppQueryRequest;
 import com.suny.aicodegeng.model.entity.App;
 import com.suny.aicodegeng.model.entity.User;
@@ -17,8 +18,27 @@ import java.util.List;
  */
 public interface AppService extends IService<App> {
 
+    /**
+     * 应用创建
+     * @param appAddRequest 应用创建请求
+     * @param loginUser 登录用户
+     * @return 应用ID
+     */
+    Long createApp(AppAddRequest appAddRequest, User loginUser);
+
+    /**
+     * 部署应用
+     * @param appId 应用ID
+     * @param loginUser 登录用户
+     * @return 部署结果
+     */
     String deployApp(Long appId, User loginUser);
 
+    /**
+     * 异步生成应用截图
+     * @param appId 应用ID
+     * @param appUrl 应用URL
+     */
     void generateAppScreenshotAsync(Long appId, String appUrl);
 
     /**
@@ -27,6 +47,7 @@ public interface AppService extends IService<App> {
      * @return AppVO 视图对象，用于前端展示，可能包含格式化或额外处理后的数据
      */
     AppVO getAppVO(App app);
+
 
     QueryWrapper getQueryWrapper(AppQueryRequest appQueryRequest);
 
