@@ -58,6 +58,9 @@ import {
   HomeOutlined,
   UserOutlined,
   InfoCircleOutlined,
+  AppstoreOutlined,
+  MessageOutlined,
+  TeamOutlined,
 } from '@ant-design/icons-vue'
 
 // JS 中引入 Store
@@ -82,16 +85,19 @@ const originItems = [
   },
   {
     key: '/admin/userManage',
+    icon: () => h(TeamOutlined),
     label: '用户管理',
     title: '用户管理',
   },
   {
     key: '/admin/appManage',
+    icon: () => h(AppstoreOutlined),
     label: '应用管理',
     title: '应用管理',
   },
   {
     key: '/admin/chatManage',
+    icon: () => h(MessageOutlined),
     label: '对话管理',
     title: '对话管理',
   },

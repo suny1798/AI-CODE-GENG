@@ -7,7 +7,6 @@
     <div class="container">
       <div class="page-header">
         <h1 class="page-title">应用管理</h1>
-        <p class="page-desc">管理系统中的所有应用</p>
       </div>
 
       <div class="content-card">
