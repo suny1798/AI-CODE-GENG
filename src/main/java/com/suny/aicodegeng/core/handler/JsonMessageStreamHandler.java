@@ -5,6 +5,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.suny.aicodegeng.ai.model.message.*;
+import com.suny.aicodegeng.ai.tools.BaseTool;
+import com.suny.aicodegeng.ai.tools.ToolManager;
 import com.suny.aicodegeng.constant.AppConstant;
 import com.suny.aicodegeng.core.builder.VueProjectBuilder;
 import com.suny.aicodegeng.model.entity.User;
@@ -28,6 +30,9 @@ public class JsonMessageStreamHandler {
 
     @Resource
     private VueProjectBuilder vueProjectBuilder;
+
+    @Resource
+    private ToolManager toolManager;
 
 
     /**
@@ -84,13 +89,15 @@ public class JsonMessageStreamHandler {
                 return data;
             }
             case TOOL_REQUEST -> {
-                ToolRequestMessage toolRequestMessage = JSONUtil.toBean(chunk, ToolRequestMessage.class);
-                String toolId = toolRequestMessage.getId();
+                ToolRequestMessage toolExecutedMessage = JSONUtil.toBean(chunk, ToolRequestMessage.class);
+                String toolId = toolExecutedMessage.getId();
+                String toolName = toolExecutedMessage.getName();
                 // 检查是否是第一次看到这个工具 ID
                 if (toolId != null && !seenToolIds.contains(toolId)) {
                     // 第一次调用这个工具，记录 ID 并完整返回工具信息
                     seenToolIds.add(toolId);
-                    return "\n\n[️📌选择工具] 写入文件\n\n";
+                    BaseTool tool = toolManager.getTool(toolName);
+                    return tool.generateToolRequestResponse();
                 } else {
                     // 不是第一次调用这个工具，直接返回空
                     return "";
@@ -99,15 +106,9 @@ public class JsonMessageStreamHandler {
             case TOOL_EXECUTED -> {
                 ToolExecutedMessage toolExecutedMessage = JSONUtil.toBean(chunk, ToolExecutedMessage.class);
                 JSONObject jsonObject = JSONUtil.parseObj(toolExecutedMessage.getArguments());
-                String relativeFilePath = jsonObject.getStr("relativeFilePath");
-                String suffix = FileUtil.getSuffix(relativeFilePath);
-                String content = jsonObject.getStr("content");
-                String result = String.format("""
-                        [🚀执行操作] 写入文件 %s
-                        ```%s
-                        %s
-                        ```
-                        """, relativeFilePath, suffix, content);
+                String toolName = toolExecutedMessage.getName();
+                BaseTool tool = toolManager.getTool(toolName);
+                String result = tool.generateToolExecutedResult(jsonObject);
                 // 输出前端和要持久化的内容
                 String output = String.format("\n\n%s\n\n", result);
                 chatHistoryStringBuilder.append(output);

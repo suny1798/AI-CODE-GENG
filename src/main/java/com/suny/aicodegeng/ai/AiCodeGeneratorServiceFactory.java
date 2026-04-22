@@ -2,7 +2,7 @@ package com.suny.aicodegeng.ai;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.suny.aicodegeng.ai.tools.FileWriteTool;
+import com.suny.aicodegeng.ai.tools.*;
 import com.suny.aicodegeng.exception.BusinessException;
 import com.suny.aicodegeng.exception.ErrorCode;
 import com.suny.aicodegeng.model.enums.CodeGenTypeEnum;
@@ -39,6 +39,8 @@ public class AiCodeGeneratorServiceFactory {
     @Resource
     private ChatHistoryService chatHistoryService;
 
+    @Resource
+    private ToolManager toolManager;
 
     /**
      * AI 服务实例缓存
@@ -88,7 +90,8 @@ public class AiCodeGeneratorServiceFactory {
                             .chatModel(chatModel)
                             .streamingChatModel(reasoningStreamingChatModel)
                             .chatMemoryProvider(memory -> chatMemory)
-                            .tools(new FileWriteTool())
+                            .tools(toolManager.getAllTools())
+                            //处理工具调用幻觉
                             .hallucinatedToolNameStrategy(toolExecutionRequest ->
                                     ToolExecutionResultMessage.from(
                                             toolExecutionRequest,

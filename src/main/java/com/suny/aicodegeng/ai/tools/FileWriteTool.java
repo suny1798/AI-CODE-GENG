@@ -1,10 +1,12 @@
 package com.suny.aicodegeng.ai.tools;
 
+import cn.hutool.json.JSONObject;
 import com.suny.aicodegeng.constant.AppConstant;
 import dev.langchain4j.agent.tool.P;
 import dev.langchain4j.agent.tool.Tool;
 import dev.langchain4j.agent.tool.ToolMemoryId;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,7 +19,8 @@ import java.nio.file.StandardOpenOption;
  * 支持 AI 通过工具调用的方式写入文件
  */
 @Slf4j
-public class FileWriteTool {
+@Component
+public class FileWriteTool extends BaseTool{
 
     @Tool("写入文件到指定路径")
     public String writeFile(@P("文件的相对路径") String relativeFilePath, @P("要写入文件的内容") String content, @ToolMemoryId Long appId) {
@@ -44,5 +47,28 @@ public class FileWriteTool {
             log.error(errorMessage, e);
             return errorMessage;
         }
+    }
+
+    @Override
+    public String getToolName() {
+        return "writeFile";
+    }
+
+    @Override
+    public String getDisplayName() {
+        return "文件写入";
+    }
+
+    @Override
+    public String generateToolExecutedResult(JSONObject arguments) {
+        String relativeFilePath = arguments.getStr("relativeFilePath");
+        String suffix = arguments.getStr("suffix");
+        String content = arguments.getStr("content");
+        return String.format("""
+                        [🚀工具调用] %s %s
+                        ```%s
+                        %s
+                        ```
+                        """, getDisplayName(), relativeFilePath, suffix, content);
     }
 }
