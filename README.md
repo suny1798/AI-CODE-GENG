@@ -56,12 +56,22 @@
 - 一键部署生成的应用
 - 静态资源访问
 
+#### 6. 管理员后台
+- 用户管理
+- 应用管理
+- 对话管理
+
+#### 7. 高级功能
+- **可视化编辑模式**: 可视化编辑生成的应用
+- **AI 智能路由**: 根据内容自动选择最优代码生成策略
+- **应用截图**: 自动生成应用缩略图
+- **代码下载**: 支持下载完整项目代码
+- **图片收集工具**: LangGraph4j 工作流自动收集相关图片素材
+- **文件操作工具**: AI 辅助修改和操作项目文件
+
 ### 开发中功能
 
-- [ ] 管理员后台（用户管理、应用管理、对话管理）
-- [ ] 应用编辑功能
-- [ ] 部署后在线预览
-- [ ] 代码优化提示词
+- [ ] 移动端适配
 
 ## 项目结构
 
@@ -74,6 +84,8 @@ ai-code-geng/
 │   │   │   ├── AppCard.vue
 │   │   │   ├── AppDetailModal.vue
 │   │   │   ├── DeploySuccessModal.vue
+│   │   │   ├── GlobalFooter.vue
+│   │   │   ├── GlobalHeader.vue
 │   │   │   ├── MarkdownRenderer.vue
 │   │   │   └── UserInfo.vue
 │   │   ├── config/           # 配置文件
@@ -83,15 +95,15 @@ ai-code-geng/
 │   │   │   ├── AboutPage.vue          # 关于页面
 │   │   │   ├── app/
 │   │   │   │   ├── AppChatPage.vue    # 应用对话页
-│   │   │   │   └── AppEditPage.vue    # 应用编辑页（开发中）
+│   │   │   │   └── AppEditPage.vue    # 应用编辑页
 │   │   │   ├── user/
 │   │   │   │   ├── UserLoginPage.vue  # 登录页
 │   │   │   │   ├── UserRegisterPage.vue # 注册页
 │   │   │   │   └── UserInfoPage.vue    # 用户信息页
 │   │   │   └── admin/
-│   │   │       ├── AppManagePage.vue  # 应用管理（开发中）
-│   │   │       ├── ChatManagePage.vue # 对话管理（开发中）
-│   │   │       └── UserManagePage.vue # 用户管理（开发中）
+│   │   │       ├── AppManagePage.vue  # 应用管理
+│   │   │       ├── ChatManagePage.vue # 对话管理
+│   │   │       └── UserManagePage.vue # 用户管理
 │   │   ├── stores/           # Pinia 状态管理
 │   │   ├── utils/            # 工具函数
 │   │   ├── request.ts        # Axios 请求封装
@@ -104,16 +116,39 @@ ai-code-geng/
 │       │   ├── ai/                  # AI 代码生成服务
 │       │   │   ├── AiCodeGeneratorService.java
 │       │   │   ├── AiCodeGeneratorServiceFactory.java
+│       │   │   ├── AiCodeGenTypeRoutingService.java
 │       │   │   ├── model/           # AI 返回结果模型
 │       │   │   │   ├── HtmlCodeResult.java
-│       │   │   │   └── MultiFileCodeResult.java
+│       │   │   │   ├── MultiFileCodeResult.java
+│       │   │   │   └── message/     # 消息模型
 │       │   │   └── tools/           # AI 工具类
-│       │   │       └── FileWriteTool.java
+│       │   │       ├── ToolManager.java
+│       │   │       ├── FileWriteTool.java
+│       │   │       ├── FileReadTool.java
+│       │   │       ├── FileModifyTool.java
+│       │   │       ├── FileDeleteTool.java
+│       │   │       └── FileDirReadTool.java
+│       │   ├── langgraph4j/         # LangGraph4j 工作流
+│       │   │   ├── CodeGenWorkflow.java
+│       │   │   ├── WorkflowApp.java
+│       │   │   ├── node/            # 工作流节点
+│       │   │   │   ├── RouterNode.java
+│       │   │   │   ├── PromptEnhancerNode.java
+│       │   │   │   ├── ImageCollectorNode.java
+│       │   │   │   ├── CodeGeneratorNode.java
+│       │   │   │   └── ProjectBuilderNode.java
+│       │   │   ├── tools/           # 图片收集工具
+│       │   │   │   ├── ImageSearchTool.java
+│       │   │   │   ├── LogoGeneratorTool.java
+│       │   │   │   ├── MermaidDiagramTool.java
+│       │   │   │   └── UndrawIllustrationTool.java
+│       │   │   └── ai/              # 图片服务
 │       │   ├── config/              # 配置类
 │       │   │   ├── CorsConfig.java
 │       │   │   ├── JsonConfig.java
 │       │   │   ├── RedisChatMemoryStoreConfig.java
-│       │   │   └── ReasoningStreamingChatModelConfig.java
+│       │   │   ├── ReasoningStreamingChatModelConfig.java
+│       │   │   └── CosClientConfig.java
 │       │   ├── constant/            # 常量定义
 │       │   ├── controller/          # 控制器
 │       │   │   ├── AppController.java
@@ -125,16 +160,22 @@ ai-code-geng/
 │       │   │   ├── AiCodeGeneratorFacade.java
 │       │   │   ├── CodeFileSaver.java
 │       │   │   ├── CodeParser.java
+│       │   │   ├── builder/         # 项目构建器
+│       │   │   │   └── VueProjectBuilder.java
 │       │   │   ├── parser/          # 代码解析器
 │       │   │   │   ├── CodeParser.java
 │       │   │   │   ├── CodeParserExecutor.java
 │       │   │   │   ├── HtmlCodeParser.java
 │       │   │   │   └── MultiFileCodeParser.java
-│       │   │   └── saver/           # 文件存储器
-│       │   │       ├── CodeFileSaverExecutor.java
-│       │   │       ├── CodeFileSaverTemplate.java
-│       │   │       ├── HtmlCodeFileSaverTemplate.java
-│       │   │       └── MultiFileCodeFileSaverTemplate.java
+│       │   │   ├── saver/           # 文件存储器
+│       │   │   │   ├── CodeFileSaverExecutor.java
+│       │   │   │   ├── CodeFileSaverTemplate.java
+│       │   │   │   ├── HtmlCodeFileSaverTemplate.java
+│       │   │   │   └── MultiFileCodeFileSaverTemplate.java
+│       │   │   └── handler/         # 流处理器
+│       │   │       ├── StreamHandlerExecutor.java
+│       │   │       ├── SimpleTextStreamHandler.java
+│       │   │       └── JsonMessageStreamHandler.java
 │       │   ├── mapper/              # MyBatis Mapper
 │       │   ├── model/               # 数据模型
 │       │   │   ├── dto/             # 数据传输对象
@@ -142,6 +183,14 @@ ai-code-geng/
 │       │   │   ├── enums/           # 枚举类
 │       │   │   └── vo/              # 视图对象
 │       │   ├── service/             # 服务层
+│       │   │   ├── AppService.java
+│       │   │   ├── ChatHistoryService.java
+│       │   │   ├── ScreenshotService.java
+│       │   │   └── ProjectDownloadService.java
+│       │   ├── manage/              # 对象存储管理
+│       │   │   └── CosManager.java
+│       │   ├── utils/               # 工具类
+│       │   │   └── WebScreenshotUtils.java
 │       │   └── exception/           # 异常处理
 │       └── resources/
 │           ├── mapper/              # Mapper XML 文件
@@ -185,24 +234,12 @@ CodeFileSaver 保存代码到文件
 
 ## 待完成工作
 
-### 后端
-- [ ] 完善管理员权限控制
-- [ ] 应用编辑接口
-- [ ] 代码质量分析
-- [ ] 更多 AI 模型支持
-
-### 前端
-- [ ] 完成应用编辑页面
-- [ ] 完成管理员后台页面
-- [ ] 部署后在线预览功能
-- [ ] 用户设置页面优化
-- [ ] 移动端适配
-
 ### 功能增强
 - [ ] 生成代码的在线预览
 - [ ] 代码版本管理
 - [ ] 模板市场
 - [ ] 团队协作功能
+- [ ] 移动端适配
 
 ## 运行项目
 
@@ -243,11 +280,11 @@ npm run dev
 
 ## 最近提交
 
-- `958db13` - 后端：新增Vue项目生成功能与配置
-- `e715e75` - 后端：新增Redis对话记忆与历史加载功能
-- `ad44980` - 后端：新增对话历史保存与分页查询功能
-- `c5c8120` - 后端：初始化ChatHistory对话历史模块
-- `0483edc` - 前端：优化登录状态判断与搜索交互
+- `61e76ec` - 后端：新增LangGraph4j工作流与图片收集工具
+- `41a9b09` - 前端：优化管理页面UI，新增菜单图标
+- `cd6e7db` - 后端：重构工具系统，新增文件操作工具与工具管理器
+- `27291ff` - 后端：优化提示词，增加修改要求处理规范
+- `ede8d13` - 前端：配置Vite代理，新增可视化编辑模式与元素选择功能
 
 ## 贡献指南
 
