@@ -6,8 +6,8 @@
     </div>
     <div class="container">
       <div class="hero-section">
-        <h1 class="title">关于 AI 应用生成平台</h1>
-        <p class="subtitle">不写一行代码，生成完整应用</p>
+        <h1 class="title">关于云搭平台</h1>
+        <p class="subtitle">说出来的创意，跑起来的应用</p>
       </div>
 
       <div class="content-card">

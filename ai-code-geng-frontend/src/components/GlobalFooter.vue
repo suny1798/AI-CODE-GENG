@@ -8,7 +8,7 @@
           rel="noopener noreferrer"
           class="author-link"
         >
-          AI应用生成平台 by Suny
+          云搭 by Suny
         </a>
       </p>
     </div>
