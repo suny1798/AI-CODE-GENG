@@ -1,6 +1,7 @@
 package com.suny.aicodegeng.langgraph4j.state;
 
 import com.suny.aicodegeng.langgraph4j.model.ImageResource;
+import com.suny.aicodegeng.langgraph4j.model.QualityResult;
 import com.suny.aicodegeng.model.enums.CodeGenTypeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,6 +32,11 @@ public class WorkflowContext implements Serializable {
      * 当前执行步骤
      */
     private String currentStep;
+
+    /**
+     * 质量检查结果
+     */
+    private QualityResult qualityResult;
 
     /**
      * 用户原始输入的提示词
