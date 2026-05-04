@@ -29,15 +29,27 @@
 
         <a-button
           v-if="appInfo?.deployKey"
-          type="primary"
+          type="default"
           :href="`http://localhost/${appInfo.deployKey}`"
           target="_blank"
           rel="noopener noreferrer"
+          style="margin-right: 8px"
         >
           <template #icon>
             <EyeOutlined />
           </template>
           一键访问
+        </a-button>
+        <a-button
+          v-if="appInfo?.deployKey"
+          type="primary"
+          @click="deployApp"
+          :loading="deploying"
+        >
+          <template #icon>
+            <CloudUploadOutlined />
+          </template>
+          重新部署
         </a-button>
         <a-button v-else type="primary" @click="deployApp" :loading="deploying">
           <template #icon>
@@ -511,6 +523,18 @@ const generateCode = async (userMessage: string, aiMessageIndex: number) => {
     })
 
     let fullContent = ''
+    let rafId: number | null = null
+
+    // 节流更新函数：限制 UI 更新频率（约60fps），避免频繁渲染导致卡顿
+    const scheduleUpdate = () => {
+      if (rafId !== null) return
+      rafId = requestAnimationFrame(() => {
+        rafId = null
+        messages.value[aiMessageIndex].content = fullContent
+        messages.value[aiMessageIndex].loading = false
+        scrollToBottom()
+      })
+    }
 
     // 处理接收到的消息
     eventSource.onmessage = function (event) {
@@ -524,9 +548,7 @@ const generateCode = async (userMessage: string, aiMessageIndex: number) => {
         // 拼接内容
         if (content !== undefined && content !== null) {
           fullContent += content
-          messages.value[aiMessageIndex].content = fullContent
-          messages.value[aiMessageIndex].loading = false
-          scrollToBottom()
+          scheduleUpdate()
         }
       } catch (error) {
         console.error('解析消息失败:', error)
@@ -539,8 +561,16 @@ const generateCode = async (userMessage: string, aiMessageIndex: number) => {
       if (streamCompleted) return
 
       streamCompleted = true
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId)
+        rafId = null
+      }
       isGenerating.value = false
       eventSource?.close()
+
+      // 立即更新一次内容（确保最后的内容被显示）
+      messages.value[aiMessageIndex].content = fullContent
+      scrollToBottom()
 
       // 延迟更新预览，确保后端已完成处理
       setTimeout(async () => {
@@ -555,6 +585,10 @@ const generateCode = async (userMessage: string, aiMessageIndex: number) => {
       // 检查是否是正常的连接关闭
       if (eventSource?.readyState === EventSource.CONNECTING) {
         streamCompleted = true
+        if (rafId !== null) {
+          cancelAnimationFrame(rafId)
+          rafId = null
+        }
         isGenerating.value = false
         eventSource?.close()
 
@@ -653,6 +687,8 @@ const deployApp = async () => {
       deployUrl.value = res.data.data
       deployModalVisible.value = true
       message.success('部署成功')
+      // 重新获取应用信息，更新 deployKey 状态
+      await fetchAppInfo()
     } else {
       message.error('部署失败：' + res.data.message)
     }

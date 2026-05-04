@@ -16,7 +16,12 @@
         </a-input>
       </div>
       <div class="deploy-actions">
-        <a-button type="primary" @click="handleOpenSite">访问网站</a-button>
+        <a-button type="primary" :href="deployUrl" target="_blank" rel="noopener noreferrer">
+          <template #icon>
+            <EyeOutlined />
+          </template>
+          访问网站
+        </a-button>
         <a-button @click="handleClose">关闭</a-button>
       </div>
     </div>
@@ -26,7 +31,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { message } from 'ant-design-vue'
-import { CheckCircleOutlined, CopyOutlined } from '@ant-design/icons-vue'
+import { CheckCircleOutlined, CopyOutlined, EyeOutlined } from '@ant-design/icons-vue'
 
 interface Props {
   open: boolean
