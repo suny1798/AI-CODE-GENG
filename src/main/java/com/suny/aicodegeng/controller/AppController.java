@@ -55,8 +55,6 @@ public class AppController {
     @Resource
     private ProjectDownloadService projectDownloadService;
 
-    @Resource
-    private AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService;
     /**
      * 应用聊天生成代码（流式 SSE）
      *
