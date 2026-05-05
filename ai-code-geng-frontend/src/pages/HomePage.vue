@@ -224,7 +224,7 @@ onMounted(() => {
       </div>
 
       <!-- 我的作品 -->
-      <div class="section" v-if="loginUserStore.loginUser.id">
+      <div class="section" v-if="loginUserStore.loginUser.id && myApps.length > 0">
         <h2 class="section-title">我的作品</h2>
         <div class="app-grid">
           <AppCard
@@ -256,6 +256,7 @@ onMounted(() => {
             :key="app.id"
             :app="app"
             :featured="true"
+            :login-user-id="loginUserStore.loginUser.id"
             @view-chat="viewChat"
             @view-work="viewWork"
           />
