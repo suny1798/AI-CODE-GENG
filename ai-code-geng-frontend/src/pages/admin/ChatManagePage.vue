@@ -24,7 +24,7 @@
               allow-clear
             >
               <a-select-option value="user">用户消息</a-select-option>
-              <a-select-option value="assistant">AI消息</a-select-option>
+              <a-select-option value="ai">AI消息</a-select-option>
             </a-select>
           </a-form-item>
           <a-form-item label="应用ID">

@@ -30,7 +30,7 @@
         <a-button
           v-if="appInfo?.deployKey"
           type="default"
-          :href="`http://localhost/${appInfo.deployKey}`"
+          :href="deployUrl"
           target="_blank"
           rel="noopener noreferrer"
           style="margin-right: 8px"
@@ -251,7 +251,7 @@ import MarkdownRenderer from '@/components/MarkdownRenderer.vue'
 import AppDetailModal from '@/components/AppDetailModal.vue'
 import DeploySuccessModal from '@/components/DeploySuccessModal.vue'
 import aiAvatar from '@/assets/aiAvatar.png'
-import { API_BASE_URL, getStaticPreviewUrl } from '@/config/env'
+import { API_BASE_URL, getDeployUrl, getStaticPreviewUrl } from '@/config/env'
 import { VisualEditor, type ElementInfo } from '@/utils/visualEditor.ts'
 
 import {
@@ -329,6 +329,13 @@ const showAppDetail = () => {
   appDetailVisible.value = true
 }
 
+// 查看作品
+const viewWork = (app: API.AppVO) => {
+  if (app.deployKey) {
+    const url = getDeployUrl(app.deployKey)
+    window.open(url, '_blank')
+  }
+}
 // 加载对话历史
 const loadChatHistory = async (isLoadMore = false) => {
   if (!appId.value || loadingHistory.value) return
