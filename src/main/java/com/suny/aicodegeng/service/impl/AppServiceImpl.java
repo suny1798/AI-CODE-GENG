@@ -25,6 +25,8 @@ import com.suny.aicodegeng.model.enums.ChatHistoryMessageTypeEnum;
 import com.suny.aicodegeng.model.enums.CodeGenTypeEnum;
 import com.suny.aicodegeng.model.vo.AppVO;
 import com.suny.aicodegeng.model.vo.UserVO;
+import com.suny.aicodegeng.monitor.MonitorContext;
+import com.suny.aicodegeng.monitor.MonitorContextHolder;
 import com.suny.aicodegeng.service.AppService;
 import com.suny.aicodegeng.service.ChatHistoryService;
 import com.suny.aicodegeng.service.ScreenshotService;
@@ -104,10 +106,19 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
 
         //5. 调用AI前保存用户信息到数据库
         chatHistoryService.addChatMessage(appId, message, ChatHistoryMessageTypeEnum.USER.getValue(), loginUser.getId());
-        //6. 根据代码生成类型调用不同的代码生成器
+        //6. 设置监控上下文
+        MonitorContext monitorContext = MonitorContext.builder()
+                .appId(appId.toString())
+                .userId(loginUser.getId().toString())
+                .build();
+        MonitorContextHolder.setContext(monitorContext);
+        //7. 根据代码生成类型调用不同的代码生成器
         Flux<String> contentFlux = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, enumByValue, appId);
-        //7. 收集AI的回复，保存AI回复到数据库
-        return streamHandlerExecutor.doExecute(contentFlux, chatHistoryService, appId, loginUser, enumByValue);
+        //8. 收集AI的回复，保存AI回复到数据库
+        return streamHandlerExecutor.doExecute(contentFlux, chatHistoryService, appId, loginUser, enumByValue)
+                .doFinally(signalType -> {
+                    MonitorContextHolder.clearContext(); // 清除监控上下文  不能提前删除
+                });
 
     }
 
